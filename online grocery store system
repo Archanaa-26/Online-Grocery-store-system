@@ -1,0 +1,225 @@
+import java.util.*;
+class Product {
+    private String name;
+    private double price;
+    private int stock;
+
+    public Product(String name, double price, int stock) {
+        this.name = name;
+        this.price = price;
+        this.stock = stock;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public int getStock() {
+        return stock;
+    }
+
+    public void reduceStock(int quantity) {
+        if (stock >= quantity) {
+            stock -= quantity;
+        }
+    }
+
+    public void addStock(int quantity) {
+        stock += quantity;
+    }
+    public String toString() {
+        return name + " - $" + price + " (Stock: " + stock + ")";
+    }
+}
+
+class User {
+    private String username;
+    private String password;
+    private List<Product> cart;
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
+        this.cart = new ArrayList<>();
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public List<Product> getCart() {
+        return cart;
+    }
+
+    public void addToCart(Product product) {
+        cart.add(product);
+    }
+
+    public void removeFromCart(Product product) {
+        cart.remove(product);
+    }
+
+    public void viewCart() {
+        if (cart.isEmpty()) {
+            System.out.println("Your cart is empty.");
+        } else {
+            double total = 0;
+            System.out.println("Your Cart: ");
+            for (Product product : cart) {
+                System.out.println(product);
+                total += product.getPrice();
+            }
+            System.out.println("Total Price: $" + total);
+        }
+    }
+
+    public void checkout() {
+        double total = 0;
+        for (Product product : cart) {
+            total += product.getPrice();
+        }
+        cart.clear();
+        System.out.println("Order placed successfully. Total amount: $" + total);
+    }
+}
+
+class GroceryStore {
+    private Map<String, Product> products;
+    private List<User> users;
+
+    public GroceryStore() {
+        products = new HashMap<>();
+        users = new ArrayList<>();
+    }
+
+        public void addProduct(Product product) {
+    products.put(product.getName().toLowerCase(), product);
+    }
+
+    public void listProducts() {
+        System.out.println("Available Products: ");
+        for (Product product : products.values()) {
+            System.out.println(product);
+        }
+    }
+
+    public void registerUser(String username, String password) {
+        users.add(new User(username, password));
+    }
+
+    public User loginUser(String username, String password) {
+        for (User user : users) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    
+    public Product getProduct(String name) {
+        return products.get(name.toLowerCase()); 
+    }
+}
+
+public class OnlineGroceryStore {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        GroceryStore store = new GroceryStore();
+        store.addProduct(new Product("Apple", 1.0, 100));
+        store.addProduct(new Product("Banana", 0.5, 100));
+        store.addProduct(new Product("Milk", 1.5, 50));
+        store.addProduct(new Product("Eggs", 2.0, 60));
+        store.addProduct(new Product("Bread", 1.2, 30));
+        store.addProduct(new Product("Carrot", 0.8, 80));
+        store.addProduct(new Product("Tomato", 1.3, 40));
+        store.addProduct(new Product("Orange", 1.1, 90));
+        store.registerUser("Archanaa", "password123");
+
+        System.out.println("Welcome to the Online Grocery Store");
+
+        System.out.print("Enter username: ");
+        String username = scanner.nextLine();
+        System.out.print("Enter password: ");
+        String password = scanner.nextLine();
+
+        User loggedInUser = store.loginUser(username, password);
+
+        if (loggedInUser != null) {
+            System.out.println("Login successful! Welcome, " + username);
+            boolean exit = false;
+            while (!exit) {
+                try {
+                    System.out.println("\nSelect an option:");
+                    System.out.println("1. View Products");
+                    System.out.println("2. Add to Cart");
+                    System.out.println("3. Remove from Cart");
+                    System.out.println("4. View Cart");
+                    System.out.println("5. Checkout");
+                    System.out.println("6. Logout");
+
+                    int choice = scanner.nextInt();
+                    scanner.nextLine(); 
+                    switch (choice) {
+                        case 1:
+                            store.listProducts();
+                            break;
+                        case 2:
+                            System.out.print("Enter product name to add to cart: ");
+                            String productName = scanner.nextLine();
+                            Product product = store.getProduct(productName);
+                            if (product != null && product.getStock() > 0) {
+                                loggedInUser.addToCart(product);
+                                product.reduceStock(1);
+                                System.out.println(product.getName() + " added to your cart.");
+                            } else {
+                                System.out.println("Product not available or out of stock.");
+                            }
+                            break;
+                        case 3:
+                            loggedInUser.viewCart();
+                            System.out.print("Enter product name to remove from cart: ");
+                            String removeProductName = scanner.nextLine();
+                            Product removeProduct = store.getProduct(removeProductName);
+                            if (removeProduct != null) {
+                                loggedInUser.removeFromCart(removeProduct);
+                                removeProduct.addStock(1);
+                                System.out.println(removeProduct.getName() + " removed from your cart.");
+                            } else {
+                                System.out.println("Product not in your cart.");
+                            }
+                            break;
+                        case 4:
+                            loggedInUser.viewCart();
+                            break;
+                        case 5:
+                            loggedInUser.checkout();
+                            break;
+                        case 6:
+                            System.out.println("Logging out...");
+                            exit = true;
+                            break;
+                        default:
+                            System.out.println("Invalid option. Please try again.");
+                            break;
+                    }
+                } catch (InputMismatchException e) {
+                    System.out.println("Invalid input. Please enter a valid number.");
+                    scanner.nextLine(); 
+                }
+            }
+        } else {
+            System.out.println("Invalid username or password.");
+        }
+
+        scanner.close();
+    }
+}
